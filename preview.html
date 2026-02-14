@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IndAss_2 — Note-Taking App Preview</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #0e0f16;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        /* ── Phone Frame ── */
+        .phone-frame {
+            width: 400px;
+            height: 780px;
+            border: 3px solid #333;
+            border-radius: 40px;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(150deg, #1e2133, #2e3352);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Navigation Bar ── */
+        .nav-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 20px 12px;
+            flex-shrink: 0;
+        }
+
+        .nav-bar .back-btn {
+            background: none;
+            border: none;
+            color: #22d3ee;
+            font-size: 22px;
+            cursor: pointer;
+            display: none;
+            padding: 4px 8px;
+        }
+
+        .nav-bar .back-btn:hover {
+            opacity: 0.7;
+        }
+
+        .nav-bar h1 {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            flex: 1;
+            text-align: left;
+            padding-left: 4px;
+        }
+
+        .nav-bar .action-btn {
+            background: none;
+            border: none;
+            color: #22d3ee;
+            font-size: 26px;
+            cursor: pointer;
+            padding: 4px 8px;
+            line-height: 1;
+        }
+
+        .nav-bar .action-btn:hover {
+            opacity: 0.7;
+        }
+
+        /* ── Screen Container ── */
+        .screen {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 16px 20px;
+            display: none;
+            flex-direction: column;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* Scrollbar styling */
+        .screen::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .screen::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 2px;
+        }
+
+        /* ── Empty State ── */
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            opacity: 0.45;
+        }
+
+        .empty-state .icon {
+            font-size: 56px;
+        }
+
+        .empty-state h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .empty-state p {
+            font-size: 13px;
+        }
+
+        /* ── Note Card ── */
+        .note-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 16px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+            position: relative;
+        }
+
+        .note-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+        }
+
+        .note-card.completed {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(34, 197, 94, 0.2);
+        }
+
+        .note-card .check-icon {
+            font-size: 22px;
+            margin-top: 2px;
+            flex-shrink: 0;
+            color: rgba(255, 255, 255, 0.35);
+        }
+
+        .note-card.completed .check-icon {
+            color: #22c55e;
+        }
+
+        .note-card .card-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .note-card .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            margin-bottom: 4px;
+            color: #fff;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .note-card.completed .card-title {
+            text-decoration: line-through;
+            text-decoration-color: rgba(34, 197, 94, 0.7);
+            color: rgba(255, 255, 255, 0.45);
+        }
+
+        .note-card .card-body {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.55);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.5;
+        }
+
+        .note-card.completed .card-body {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Swipe delete */
+        .note-card .delete-btn {
+            position: absolute;
+            right: 8px;
+            top: 8px;
+            background: rgba(239, 68, 68, 0.85);
+            border: none;
+            color: #fff;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            font-size: 14px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .note-card:hover .delete-btn {
+            display: flex;
+        }
+
+        .note-card .delete-btn:hover {
+            background: #ef4444;
+        }
+
+        /* ── Detail View ── */
+        .detail-title {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            line-height: 1.3;
+        }
+
+        .detail-title.completed {
+            text-decoration: line-through;
+            text-decoration-color: rgba(34, 197, 94, 0.7);
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        .status-badge.in-progress {
+            background: rgba(249, 115, 22, 0.15);
+            color: #f97316;
+        }
+
+        .status-badge.done {
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+        }
+
+        .detail-content {
+            font-size: 15px;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+            white-space: pre-wrap;
+            margin-bottom: 30px;
+        }
+
+        .detail-content.completed {
+            text-decoration: line-through;
+            text-decoration-color: rgba(34, 197, 94, 0.5);
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* ── Toggle Button ── */
+        .toggle-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            color: #fff;
+            cursor: pointer;
+            transition: box-shadow 0.2s;
+        }
+
+        .toggle-btn.mark-complete {
+            background: rgba(34, 197, 94, 0.8);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+        }
+
+        .toggle-btn.mark-incomplete {
+            background: rgba(249, 115, 22, 0.8);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+        }
+
+        .toggle-btn:hover {
+            filter: brightness(1.1);
+        }
+
+        /* ── Form ── */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: rgba(34, 211, 238, 0.5);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 200px;
+            line-height: 1.6;
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* ── Animations ── */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.25s ease-out;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="phone-frame">
+        <!-- Navigation Bar -->
+        <div class="nav-bar">
+            <button class="back-btn" id="backBtn" onclick="goBack()">‹</button>
+            <h1 id="navTitle">My Notes</h1>
+            <button class="action-btn" id="actionBtn" onclick="handleAction()">⊕</button>
+        </div>
+
+        <!-- Screen: List -->
+        <div class="screen active" id="listScreen"></div>
+
+        <!-- Screen: Detail -->
+        <div class="screen" id="detailScreen"></div>
+
+        <!-- Screen: Add / Edit -->
+        <div class="screen" id="formScreen">
+            <div class="form-group">
+                <label class="form-label">Title</label>
+                <input type="text" class="form-input" id="formTitle" placeholder="Enter note title...">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Content</label>
+                <textarea class="form-input form-textarea" id="formContent"
+                    placeholder="Write your note here..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════
+        //  DATA MODEL  (mirrors Note.swift)
+        // ═══════════════════════════════════════════
+        function createNote(title, content) {
+            return {
+                id: crypto.randomUUID(),
+                title: title,
+                content: content,
+                isCompleted: false
+            };
+        }
+
+        // ═══════════════════════════════════════════
+        //  VIEW MODEL  (mirrors NotesViewModel.swift)
+        // ═══════════════════════════════════════════
+        const STORAGE_KEY = 'notesData';
+
+        function loadNotes() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                return raw ? JSON.parse(raw) : [];
+            } catch { return []; }
+        }
+
+        function saveNotes(notes) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+        }
+
+        let notes = loadNotes();
+
+        function addNote(title, content) {
+            notes.push(createNote(title, content));
+            saveNotes(notes);
+        }
+
+        function updateNote(id, title, content) {
+            const n = notes.find(n => n.id === id);
+            if (n) { n.title = title; n.content = content; saveNotes(notes); }
+        }
+
+        function toggleCompletion(id) {
+            const n = notes.find(n => n.id === id);
+            if (n) { n.isCompleted = !n.isCompleted; saveNotes(notes); }
+        }
+
+        function deleteNote(id) {
+            notes = notes.filter(n => n.id !== id);
+            saveNotes(notes);
+        }
+
+        // ═══════════════════════════════════════════
+        //  NAVIGATION STATE
+        // ═══════════════════════════════════════════
+        let currentScreen = 'list';   // 'list' | 'detail' | 'form'
+        let selectedNoteId = null;
+        let editingNoteId = null;     // null = add mode
+
+        function showScreen(name) {
+            currentScreen = name;
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const map = { list: 'listScreen', detail: 'detailScreen', form: 'formScreen' };
+            const el = document.getElementById(map[name]);
+            el.classList.add('active');
+            el.classList.remove('fade-in');
+            void el.offsetWidth;          // trigger reflow
+            el.classList.add('fade-in');
+            updateNav();
+        }
+
+        function updateNav() {
+            const back = document.getElementById('backBtn');
+            const title = document.getElementById('navTitle');
+            const action = document.getElementById('actionBtn');
+
+            if (currentScreen === 'list') {
+                back.style.display = 'none';
+                title.textContent = 'My Notes';
+                action.style.display = '';
+                action.textContent = '+';
+                action.onclick = () => openForm(null);
+            } else if (currentScreen === 'detail') {
+                back.style.display = 'block';
+                title.textContent = 'Note Details';
+                action.style.display = '';
+                action.textContent = '✎';
+                action.onclick = () => openForm(selectedNoteId);
+            } else if (currentScreen === 'form') {
+                back.style.display = 'block';
+                title.textContent = editingNoteId ? 'Edit Note' : 'New Note';
+                action.style.display = '';
+                action.textContent = 'Save';
+                action.style.fontSize = '15px';
+                action.style.fontWeight = '700';
+                action.onclick = saveForm;
+            }
+
+            // Reset action button font when not Save
+            if (currentScreen !== 'form') {
+                action.style.fontSize = '26px';
+                action.style.fontWeight = '';
+            }
+        }
+
+        function goBack() {
+            if (currentScreen === 'form' && selectedNoteId && !editingNoteId) {
+                // came from list via add, go back to list
+                renderList(); showScreen('list');
+            } else if (currentScreen === 'form' && editingNoteId) {
+                // editing from detail, go back to detail
+                renderDetail(editingNoteId); showScreen('detail');
+            } else if (currentScreen === 'form') {
+                renderList(); showScreen('list');
+            } else if (currentScreen === 'detail') {
+                renderList(); showScreen('list');
+            }
+        }
+
+        // ═══════════════════════════════════════════
+        //  RENDER: LIST
+        // ═══════════════════════════════════════════
+        function renderList() {
+            const el = document.getElementById('listScreen');
+
+            if (notes.length === 0) {
+                el.innerHTML = `
+            <div class="empty-state">
+                <div class="icon">📝</div>
+                <h2>No Notes Yet</h2>
+                <p>Tap ⊕ to create your first note</p>
+            </div>`;
+                return;
+            }
+
+            el.innerHTML = notes.map(n => `
+        <div class="note-card ${n.isCompleted ? 'completed' : ''}" onclick="openDetail('${n.id}')">
+            <div class="check-icon">${n.isCompleted ? '✅' : '○'}</div>
+            <div class="card-content">
+                <div class="card-title">${esc(n.title)}</div>
+                <div class="card-body">${esc(n.content)}</div>
+            </div>
+            <button class="delete-btn" onclick="event.stopPropagation(); onDelete('${n.id}')">✕</button>
+        </div>
+    `).join('');
+        }
+
+        function onDelete(id) {
+            deleteNote(id);
+            renderList();
+        }
+
+        // ═══════════════════════════════════════════
+        //  RENDER: DETAIL
+        // ═══════════════════════════════════════════
+        function openDetail(id) {
+            selectedNoteId = id;
+            renderDetail(id);
+            showScreen('detail');
+        }
+
+        function renderDetail(id) {
+            const n = notes.find(n => n.id === id);
+            if (!n) { renderList(); showScreen('list'); return; }
+            const el = document.getElementById('detailScreen');
+
+            const badgeClass = n.isCompleted ? 'done' : 'in-progress';
+            const badgeIcon = n.isCompleted ? '✓' : '⏱';
+            const badgeText = n.isCompleted ? 'Completed' : 'In Progress';
+            const btnClass = n.isCompleted ? 'mark-incomplete' : 'mark-complete';
+            const btnIcon = n.isCompleted ? '↩' : '✓';
+            const btnText = n.isCompleted ? 'Mark as Incomplete' : 'Mark as Completed';
+
+            el.innerHTML = `
+        <h2 class="detail-title ${n.isCompleted ? 'completed' : ''}">${esc(n.title)}</h2>
+        <span class="status-badge ${badgeClass}">${badgeIcon} ${badgeText}</span>
+        <div class="detail-content ${n.isCompleted ? 'completed' : ''}">${esc(n.content)}</div>
+        <button class="toggle-btn ${btnClass}" onclick="onToggle('${n.id}')">
+            ${btnIcon}&nbsp; ${btnText}
+        </button>
+    `;
+        }
+
+        function onToggle(id) {
+            toggleCompletion(id);
+            renderDetail(id);
+            updateNav();
+        }
+
+        // ═══════════════════════════════════════════
+        //  RENDER: FORM (Add / Edit)
+        // ═══════════════════════════════════════════
+        function openForm(noteId) {
+            editingNoteId = noteId;
+            const titleInput = document.getElementById('formTitle');
+            const contentInput = document.getElementById('formContent');
+
+            if (noteId) {
+                const n = notes.find(n => n.id === noteId);
+                titleInput.value = n ? n.title : '';
+                contentInput.value = n ? n.content : '';
+            } else {
+                titleInput.value = '';
+                contentInput.value = '';
+            }
+
+            showScreen('form');
+        }
+
+        function saveForm() {
+            const title = document.getElementById('formTitle').value.trim();
+            const content = document.getElementById('formContent').value.trim();
+            if (!title) return;
+
+            if (editingNoteId) {
+                updateNote(editingNoteId, title, content);
+                renderDetail(editingNoteId);
+                showScreen('detail');
+            } else {
+                addNote(title, content);
+                renderList();
+                showScreen('list');
+            }
+        }
+
+        function handleAction() {
+            // default click handler, overridden by updateNav
+        }
+
+        // ── Utility ──
+        function esc(s) {
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+
+        // ── Init ──
+        renderList();
+        showScreen('list');
+    </script>
+</body>
+
+</html>
