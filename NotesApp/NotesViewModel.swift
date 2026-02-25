@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+internal import Combine
 
 class NotesViewModel: ObservableObject {
     

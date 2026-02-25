@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ContentView: View {
+struct NotesHomeView: View {
     @ObservedObject var viewModel: NotesViewModel
     
     var body: some View {

@@ -7,7 +7,7 @@ struct IndAss_2App: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack {
-                ContentView(viewModel: viewModel)
+                NotesHomeView(viewModel: viewModel)
             }
         }
     }
